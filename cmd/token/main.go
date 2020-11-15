@@ -13,9 +13,10 @@ import (
 )
 
 var (
-	allPaths = regexp.MustCompile(`claims|create|verify`)
-	jwtPaths = regexp.MustCompile(`claims|verify`)
+	allPaths = regexp.MustCompile(`claims|create|id|verify`)
+	jwtPaths = regexp.MustCompile(`claims|id|verify`)
 	jwtKey   = []byte(os.Getenv("JWT_KEY"))
+	stage    = os.Getenv("STAGE")
 )
 
 func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -32,7 +33,7 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 
 		// is there a token provided?
 		token, ok := r.Headers["Authorize"]
-		if !ok {
+		if stage != "test" && !ok {
 			return apigwp.BadRequest(fmt.Errorf(`token not found`))
 		}
 
@@ -42,7 +43,7 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 		// is the token valid?
 		if jwtToken, err := jwt.ParseWithClaims(token, &jwt.StandardClaims{}, func(_ *jwt.Token) (interface{}, error) {
 			return jwtKey, nil
-		}); err != nil || !jwtToken.Valid {
+		}); stage != "test" && (err != nil || !jwtToken.Valid) {
 			return apigwp.Unauthorized(fmt.Errorf(`bad token, invalid segments or expired`))
 		}
 	}
@@ -59,9 +60,12 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 	token = "Bearer " + token
 
 	// return response
-	if r.Path == "claims" {
+	if r.Path == "id" {
+		return apigwp.OkInterface(token, claims.Id)
+	} else if r.Path == "claims" {
 		return apigwp.OkInterface(token, &claims)
 	}
+
 	return apigwp.OkVoid(token)
 }
 
