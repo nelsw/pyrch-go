@@ -6,7 +6,7 @@ import (
 )
 
 func TestFind200(t *testing.T) {
-	handleTest(t, "repo")
+	handleTest(t, "find")
 }
 
 func TestCrawl200(t *testing.T) {

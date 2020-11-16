@@ -9,10 +9,7 @@ import (
 	"pyrch-go/internal/apigwp"
 	"pyrch-go/internal/faas"
 	"pyrch-go/pkg/model"
-	"regexp"
 )
-
-var paths = regexp.MustCompile(`save|find-one`)
 
 func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
@@ -20,17 +17,11 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 
 	token := r.Headers["Authorize"]
 
-	// is path valid?
-	if !paths.Match([]byte(r.Path)) {
-		return apigwp.NotFound(fmt.Errorf("path not found [%s]", r.Path))
-	}
-
-	// is token valid?
-	res := faas.CallIt("token", "verify", r.Headers)
-	if res.StatusCode != 200 {
+	if res := faas.CallIt("token", "verify", r.Headers); res.StatusCode != 200 {
 		return apigwp.NotOk(res.StatusCode, errors.New(res.Body))
+	} else {
+		token = res.Headers["Authorize"]
 	}
-	token = res.Headers["Authorize"]
 
 	if r.Path == "find-one" {
 		if pk, ok := r.PathParameters["pk"]; !ok {

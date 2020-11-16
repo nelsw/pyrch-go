@@ -18,7 +18,7 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 
 	if r.Path == "crawl" {
 
-		res := faas.CallIt("security", "verify", r.Headers)
+		res := faas.CallIt("token", "verify", r.Headers)
 		if res.StatusCode != 200 {
 			return apigwp.NotOk(res.StatusCode, errors.New(res.Body))
 		}
