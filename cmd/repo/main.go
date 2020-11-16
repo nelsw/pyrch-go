@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -9,10 +10,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 	"github.com/google/uuid"
 	"log"
 	"os"
 	"pyrch-go/internal/apigwp"
+	"pyrch-go/internal/faas"
 	"pyrch-go/pkg/model"
 	"strconv"
 	"time"
@@ -74,11 +77,37 @@ func findOne(table, id *string, i interface{}) error {
 	}
 }
 
+func findAll(table *string, i interface{}) error {
+	f := expression.AttributeNotExists(expression.Name("deleted"))
+	exp, expErr := expression.NewBuilder().WithFilter(f).Build()
+	if expErr != nil {
+		return expErr
+	}
+
+	if out, err := db.Scan(&dynamodb.ScanInput{
+		ExpressionAttributeNames:  exp.Names(),
+		ExpressionAttributeValues: exp.Values(),
+		FilterExpression:          exp.Filter(),
+		ProjectionExpression:      exp.Projection(),
+		TableName:                 table,
+	}); err != nil {
+		return err
+	} else {
+		return dynamodbattribute.UnmarshalListOfMaps(out.Items, &i)
+	}
+}
+
 func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	apigwp.LogRequest(r)
 
 	token := r.Headers["Authorize"]
+
+	if res := faas.CallIt("token", "verify", r.Headers); res.StatusCode != 200 {
+		return apigwp.NotOk(res.StatusCode, errors.New(res.Body))
+	} else {
+		token = res.Headers["Authorize"]
+	}
 
 	table := r.PathParameters["table"]
 	i := model.Registry[table]
@@ -94,6 +123,13 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 	if r.Path == "find-one" {
 		id := r.PathParameters["pk"]
 		if err := findOne(&table, &id, &i); err != nil {
+			return apigwp.Bad(err)
+		}
+		return apigwp.OkInterface(token, i)
+	}
+
+	if r.Path == "find-all" {
+		if err := findAll(&table, &i); err != nil {
 			return apigwp.Bad(err)
 		}
 		return apigwp.OkInterface(token, i)

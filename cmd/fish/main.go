@@ -16,13 +16,13 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 
 	token := r.Headers["Authorize"]
 
-	if r.Path == "crawl" {
-
-		res := faas.CallIt("token", "verify", r.Headers)
-		if res.StatusCode != 200 {
-			return apigwp.NotOk(res.StatusCode, errors.New(res.Body))
-		}
+	if res := faas.CallIt("token", "verify", r.Headers); res.StatusCode != 200 {
+		return apigwp.NotOk(res.StatusCode, errors.New(res.Body))
+	} else {
 		token = res.Headers["Authorize"]
+	}
+
+	if r.Path == "crawl" {
 
 		c := colly.NewCollector(
 			colly.AllowedDomains("tampabaycichlids.com"),
@@ -52,9 +52,8 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 		return apigwp.OkVoid(token)
 	}
 
-	// else path == "repo"
+	return faas.InvokeIt("repo", r), nil
 
-	return apigwp.Bad(fmt.Errorf("path not found [%s]", r.Path))
 }
 
 func main() {

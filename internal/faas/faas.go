@@ -2,6 +2,7 @@ package faas
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -54,5 +55,6 @@ func InvokeIt(domain string, i interface{}) events.APIGatewayProxyResponse {
 		r.StatusCode = int(*output.StatusCode)
 		r.Body = string(output.Payload)
 	}
+	fmt.Printf("response: {\n\tcode: %v\n\tbody: %s\n}\n", r.StatusCode, r.Body)
 	return r
 }

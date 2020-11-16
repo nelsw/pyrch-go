@@ -1,17 +1,19 @@
 package model
 
-type Taxonomy string
+type Taxonomy struct {
+	Domain     string `json:"domain"`
+	Kingdom    string `json:"kingdom"`
+	Phylum     string `json:"phylum"`
+	Class      string `json:"class"`
+	Order      string `json:"order"`
+	Family     string `json:"family"`
+	Tribe      string `json:"tribe"`
+	Genus      string `json:"genus"`
+	Species    string `json:"species"`
+	SubSpecies string `json:"sub_species"`
+	Variety    string `json:"variety"`
+}
 
-const (
-	Domain     = "Domain"
-	Kingdom    = "Kingdom"
-	Phylum     = "Phylum"
-	Class      = "Class"
-	Order      = "Order"
-	Family     = "Family"
-	Tribe      = "Tribe"
-	Genus      = "Genus"
-	Species    = "Species"
-	SubSpecies = "Sub Species"
-	Variety    = "Variety"
-)
+func (m *Taxonomy) Validate() error {
+	return nil
+}

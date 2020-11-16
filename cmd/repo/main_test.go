@@ -20,6 +20,17 @@ func TestFindOne200(t *testing.T) {
 	}
 }
 
+func TestFindAll200(t *testing.T) {
+	if out, _ := Handle(events.APIGatewayProxyRequest{
+		Path: "find-all",
+		PathParameters: map[string]string{
+			"table": "fish",
+		},
+	}); out.StatusCode != 200 {
+		t.Fail()
+	}
+}
+
 func TestSaveOne200(t *testing.T) {
 
 	b, _ := json.Marshal(&model.User{
