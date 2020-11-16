@@ -1,4 +1,4 @@
-package client
+package faas
 
 import (
 	"encoding/json"
@@ -28,14 +28,25 @@ func init() {
 }
 
 func CallIt(domain, path string, headers map[string]string) events.APIGatewayProxyResponse {
-	return Invoke(domain+"Handler", events.APIGatewayProxyRequest{Path: path, Headers: headers})
+	r := events.APIGatewayProxyResponse{StatusCode: 500}
+	b, _ := json.Marshal(&events.APIGatewayProxyRequest{Path: path, Headers: headers})
+	if output, err := l.Invoke(&lambda.InvokeInput{
+		FunctionName: aws.String(domain + "Handler"),
+		Payload:      b,
+	}); err != nil {
+		r.Body = err.Error()
+	} else if err := json.Unmarshal(output.Payload, &r); err != nil {
+		r.StatusCode = int(*output.StatusCode)
+		r.Body = string(output.Payload)
+	}
+	return r
 }
 
-func Invoke(f string, i interface{}) events.APIGatewayProxyResponse {
+func InvokeIt(domain string, i interface{}) events.APIGatewayProxyResponse {
 	r := events.APIGatewayProxyResponse{StatusCode: 500}
 	b, _ := json.Marshal(&i)
 	if output, err := l.Invoke(&lambda.InvokeInput{
-		FunctionName: aws.String(f),
+		FunctionName: aws.String(domain + "Handler"),
 		Payload:      b,
 	}); err != nil {
 		r.Body = err.Error()

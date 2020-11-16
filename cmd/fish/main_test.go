@@ -6,7 +6,7 @@ import (
 )
 
 func TestFind200(t *testing.T) {
-	handleTest(t, "find")
+	handleTest(t, "repo")
 }
 
 func TestCrawl200(t *testing.T) {
@@ -14,8 +14,7 @@ func TestCrawl200(t *testing.T) {
 }
 
 func handleTest(t *testing.T, path string) {
-	if out, _ := Handle(events.APIGatewayProxyRequest{
-		Path: path}); out.StatusCode != 200 {
+	if out, _ := Handle(events.APIGatewayProxyRequest{Path: path}); out.StatusCode != 200 {
 		t.Fail()
 	}
 }

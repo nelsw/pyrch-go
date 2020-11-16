@@ -7,48 +7,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/gocolly/colly"
 	"pyrch-go/internal/apigwp"
-	"pyrch-go/internal/client/faas/client"
-	"pyrch-go/pkg/model"
-	"regexp"
-)
-
-type Entity struct {
-	Id         string   `json:"id"`
-	Owner      string   `json:"owner"`
-	Name       string   `json:"name"`
-	Common     string   `json:"common"`
-	Scientific string   `json:"scientific"`
-	Summary    string   `json:"summary"`
-	Images     []Image  `json:"images"`
-	Options    []Option `json:"options"`
-	model.Taxonomy
-}
-
-type Image struct {
-	Id       string `json:"id"`
-	EntityId string `json:"entity_id"`
-	Url      string `json:"url"`
-	Name     string `json:"name"`
-}
-
-type Option struct {
-	Id       string   `json:"id"`
-	EntityId string   `json:"entity_id"`
-	Price    int64    `json:"price"`   // 7900 = $79.00, stripe thinks it makes cents
-	Weight   int      `json:"weight"`  // 170 = 1.7, to avoid decimals entirely
-	Label    string   `json:"label"`   // oz, lb, kilo, ton, w/e
-	Stock    int      `json:"stock"`   // quantity available
-	Address  string   `json:"address"` // shipping departure location
-	Images   []string `json:"images"`  // urls
-}
-
-func (e *Entity) Validate() error {
-	return nil
-}
-
-var (
-	allPaths = regexp.MustCompile(`crawl|find`)
-	jwtPaths = regexp.MustCompile(`crawl`)
+	"pyrch-go/internal/faas"
 )
 
 func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -57,24 +16,15 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 
 	token := r.Headers["Authorize"]
 
-	// is the path valid?
-	if !allPaths.Match([]byte(r.Path)) {
-		return apigwp.BadRequest(fmt.Errorf("path not found [%s]", r.Path))
-	}
+	if r.Path == "crawl" {
 
-	// is token validation required?
-	if jwtPaths.Match([]byte(r.Path)) {
-		res := client.CallIt("token", "verify", r.Headers)
+		res := faas.CallIt("security", "verify", r.Headers)
 		if res.StatusCode != 200 {
 			return apigwp.NotOk(res.StatusCode, errors.New(res.Body))
 		}
 		token = res.Headers["Authorize"]
-	}
 
-	if r.Path == "crawl" {
-		// Instantiate default collector
 		c := colly.NewCollector(
-			// Visit only domains: hackerspaces.org, wiki.hackerspaces.org
 			colly.AllowedDomains("tampabaycichlids.com"),
 		)
 
@@ -97,15 +47,14 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 			fmt.Println("Visited", f.Request.URL.String())
 		})
 
-		// Start scraping on https://hackerspaces.org
 		c.Visit("https://tampabaycichlids.com/collections/mbuna")
 
-		return apigwp.Ok()
+		return apigwp.OkVoid(token)
 	}
 
-	// else path == "find"
+	// else path == "repo"
 
-	return apigwp.OkVoid(token)
+	return apigwp.Bad(fmt.Errorf("path not found [%s]", r.Path))
 }
 
 func main() {

@@ -25,26 +25,26 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 
 	// is the path valid?
 	if !allPaths.Match([]byte(r.Path)) {
-		return apigwp.BadRequest(fmt.Errorf("path not found [%s]", r.Path))
+		return apigwp.Bad(fmt.Errorf("path not found [%s]", r.Path))
 	}
 
-	// is token validation required?
+	// is security validation required?
 	if jwtPaths.Match([]byte(r.Path)) {
 
-		// is there a token provided?
+		// is there a security provided?
 		token, ok := r.Headers["Authorize"]
 		if stage != "test" && !ok {
-			return apigwp.BadRequest(fmt.Errorf(`token not found`))
+			return apigwp.Bad(fmt.Errorf(`security not found`))
 		}
 
 		// strip the "Bearer" prefix
 		token = strings.ReplaceAll(token, `Bearer `, ``)
 
-		// is the token valid?
+		// is the security valid?
 		if jwtToken, err := jwt.ParseWithClaims(token, &jwt.StandardClaims{}, func(_ *jwt.Token) (interface{}, error) {
 			return jwtKey, nil
 		}); stage != "test" && (err != nil || !jwtToken.Valid) {
-			return apigwp.Unauthorized(fmt.Errorf(`bad token, invalid segments or expired`))
+			return apigwp.Unauthorized(fmt.Errorf(`bad security, invalid segments or expired`))
 		}
 	}
 
@@ -55,7 +55,7 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 		IssuedAt:  time.Now().Unix(),
 	}
 
-	// create token
+	// create security
 	token, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(jwtKey)
 	token = "Bearer " + token
 

@@ -10,27 +10,33 @@ import (
 
 func TestFindOne200(t *testing.T) {
 	if out, _ := Handle(events.APIGatewayProxyRequest{
-		Path:           "find-one",
-		PathParameters: map[string]string{"pk": "test"},
+		Path: "find-one",
+		PathParameters: map[string]string{
+			"table": "user",
+			"pk":    "test",
+		},
 	}); out.StatusCode != 200 {
 		t.Fail()
 	}
 }
 
 func TestSaveOne200(t *testing.T) {
+
 	b, _ := json.Marshal(&model.User{
 		model.Pk{"test"},
 		model.Moment{time.Now().Unix()},
 	})
 	if out, _ := Handle(events.APIGatewayProxyRequest{
 		Path: "save",
+		PathParameters: map[string]string{
+			"table": "user",
+		},
 		Body: string(b),
 	}); out.StatusCode != 200 {
 		t.Fail()
 	}
 }
 
-// for code coverage purposes only
 func TestHandleMain(t *testing.T) {
 	go main()
 }

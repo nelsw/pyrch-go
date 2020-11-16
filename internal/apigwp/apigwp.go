@@ -12,7 +12,7 @@ func NotOk(code int, err error) (events.APIGatewayProxyResponse, error) {
 	return response(code, "", err.Error()), nil
 }
 
-func BadRequest(err error) (events.APIGatewayProxyResponse, error) {
+func Bad(err error) (events.APIGatewayProxyResponse, error) {
 	return response(400, "", err.Error()), nil
 }
 
@@ -20,8 +20,12 @@ func Unauthorized(err error) (events.APIGatewayProxyResponse, error) {
 	return response(401, "", err.Error()), nil
 }
 
-func Ok() (events.APIGatewayProxyResponse, error) {
-	return response(200, "", ""), nil
+func NotFound(err error) (events.APIGatewayProxyResponse, error) {
+	return response(404, "", err.Error()), nil
+}
+
+func Ok(body interface{}) (events.APIGatewayProxyResponse, error) {
+	return OkInterface("", body)
 }
 
 func OkVoid(token string) (events.APIGatewayProxyResponse, error) {

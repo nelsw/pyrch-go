@@ -2,43 +2,65 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"sam-app/pkg/client/faas/client"
-	"sam-app/pkg/factory/apigwp"
-	"strings"
+	"pyrch-go/internal/apigwp"
+	"pyrch-go/internal/faas"
+	"pyrch-go/pkg/model"
+	"regexp"
 )
 
+var paths = regexp.MustCompile(`save|find-one`)
+
 func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+
 	apigwp.LogRequest(r)
-	if r.Path != "add" && r.Path != "delete" {
-		return apigwp.Response(400, fmt.Errorf("bad path [%s]", r.Path))
-	} else if _, ok := r.Headers["Authorize"]; !ok {
-		return apigwp.Response(400, fmt.Errorf("no token"))
-	} else if csv, ok := r.QueryStringParameters["ids"]; !ok {
-		return apigwp.Response(400, fmt.Errorf("no ids"))
-	} else if col, ok := r.QueryStringParameters["col"]; !ok {
-		return apigwp.Response(400, fmt.Errorf("no col"))
-	} else {
 
-		authenticate := events.APIGatewayProxyRequest{Path: "authenticate", Headers: r.Headers}
-		authResponse := client.Invoke("tokenHandler", authenticate)
-		if authResponse.StatusCode != 200 {
-			return apigwp.Response(401, authResponse.Body)
-		} else {
-			r.Headers = authResponse.Headers
-		}
+	token := r.Headers["Authorize"]
 
-		claims := map[string]string{}
-		_ = json.Unmarshal([]byte(authResponse.Body), &claims)
-
-		keyword := r.Path + " " + col
-		ids := strings.Split(csv, ",")
-		m := map[string]interface{}{"table": "user", "id": claims["jti"], "ids": ids, "keyword": keyword, "type": "*user.Entity"}
-		code, body := client.CallIt(&m, "repoHandler")
-		return apigwp.ProxyResponse(code, r.Headers, body)
+	// is path valid?
+	if !paths.Match([]byte(r.Path)) {
+		return apigwp.NotFound(fmt.Errorf("path not found [%s]", r.Path))
 	}
+
+	// is token valid?
+	res := faas.CallIt("token", "verify", r.Headers)
+	if res.StatusCode != 200 {
+		return apigwp.NotOk(res.StatusCode, errors.New(res.Body))
+	}
+	token = res.Headers["Authorize"]
+
+	if r.Path == "find-one" {
+		if pk, ok := r.PathParameters["pk"]; !ok {
+			return apigwp.Bad(fmt.Errorf("no pk"))
+		} else {
+			b, _ := json.Marshal(&model.User{})
+			return faas.InvokeIt("repo", events.APIGatewayProxyRequest{
+				Headers: map[string]string{"Authorize": token},
+				Path:    r.Path,
+				PathParameters: map[string]string{
+					"table": "user",
+					"pk":    pk,
+				},
+				Body: string(b),
+			}), nil
+		}
+	}
+
+	if r.Path == "save" {
+		return faas.InvokeIt("repo", events.APIGatewayProxyRequest{
+			Headers: map[string]string{"Authorize": token},
+			Path:    r.Path,
+			PathParameters: map[string]string{
+				"table": "user",
+			},
+			Body: r.Body,
+		}), nil
+	}
+
+	return apigwp.OkVoid(token)
 }
 
 func main() {
