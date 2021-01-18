@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"pyrch-go/internal/apigwp"
@@ -12,21 +11,7 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 
 	apigwp.LogRequest(r)
 
-	if r.Path == "find-one" {
-		return faas.InvokeIt("repo", events.APIGatewayProxyRequest{
-			Path: "find-one",
-			PathParameters: map[string]string{
-				"table": "credential",
-				"id":    r.PathParameters["id"],
-			},
-		}), nil
-	}
-
-	if r.Path == "save" {
-		return faas.InvokeIt("repo", r), nil
-	}
-
-	return apigwp.Bad(fmt.Errorf("no path [%s]\n", r.Path))
+	return faas.InvokeIt("repo", r), nil
 }
 
 func main() {

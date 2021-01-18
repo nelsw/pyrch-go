@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/aws/aws-lambda-go/events"
 	"pyrch-go/pkg/model"
+	data "pyrch-go/test"
 	"testing"
 )
 
@@ -17,7 +18,8 @@ func TestSave200(t *testing.T) {
 		},
 	})
 	if out, _ := Handle(events.APIGatewayProxyRequest{
-		Path: "save",
+		Headers: map[string]string{"Authorization": data.TKN},
+		Path:    "save",
 		PathParameters: map[string]string{
 			"table": "fish",
 		},
@@ -29,7 +31,8 @@ func TestSave200(t *testing.T) {
 
 func TestFindAll200(t *testing.T) {
 	if out, _ := Handle(events.APIGatewayProxyRequest{
-		Path: "find-all",
+		Headers: map[string]string{"Authorization": data.TKN},
+		Path:    "find-all",
 		PathParameters: map[string]string{
 			"table": "fish",
 		},
@@ -39,7 +42,10 @@ func TestFindAll200(t *testing.T) {
 }
 
 func TestCrawl200(t *testing.T) {
-	if out, _ := Handle(events.APIGatewayProxyRequest{Path: "crawl"}); out.StatusCode != 200 {
+	if out, _ := Handle(events.APIGatewayProxyRequest{
+		Headers: map[string]string{"Authorization": data.TKN},
+		Path:    "crawl",
+	}); out.StatusCode != 200 {
 		t.Fail()
 	}
 }

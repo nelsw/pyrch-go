@@ -43,7 +43,7 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 				Resource:                        "",
 				Path:                            "save",
 				HTTPMethod:                      "",
-				Headers:                         nil,
+				Headers:                         r.Headers,
 				MultiValueHeaders:               nil,
 				QueryStringParameters:           nil,
 				MultiValueQueryStringParameters: nil,
