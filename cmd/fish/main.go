@@ -16,15 +16,15 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 
 	apigwp.LogRequest(r)
 
-	token := r.Headers["Authorize"]
-
-	if res := faas.CallIt("token", "verify", r.Headers); res.StatusCode != 200 {
-		return apigwp.NotOk(res.StatusCode, errors.New(res.Body))
-	} else {
-		token = res.Headers["Authorize"]
-	}
-
 	if r.Path == "crawl" {
+
+		token := r.Headers["Authorization"]
+
+		if res := faas.CallIt("token", "verify", r.Headers); res.StatusCode != 200 {
+			return apigwp.NotOk(res.StatusCode, errors.New(res.Body))
+		} else {
+			token = res.Headers["Authorization"]
+		}
 
 		c := colly.NewCollector(
 			colly.AllowedDomains("tampabaycichlids.com"),
@@ -64,7 +64,7 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 			fmt.Println("Visited", f.Request.URL.String())
 		})
 
-		c.Visit("https://tampabaycichlids.com/collections/mbuna")
+		_ = c.Visit("https://tampabaycichlids.com/collections/mbuna")
 
 		return apigwp.OkVoid(token)
 	}

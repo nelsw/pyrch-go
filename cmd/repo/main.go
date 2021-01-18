@@ -60,9 +60,7 @@ func save(table *string, i *interface{}) error {
 	}); err != nil {
 		return err
 	} else {
-		err = dynamodbattribute.UnmarshalMap(item, &i)
-		fmt.Println(&i)
-		return err
+		return dynamodbattribute.UnmarshalMap(item, &i)
 	}
 }
 
@@ -101,12 +99,12 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 
 	apigwp.LogRequest(r)
 
-	token := r.Headers["Authorize"]
+	token := r.Headers["Authorization"]
 
 	if res := faas.CallIt("token", "verify", r.Headers); res.StatusCode != 200 {
 		return apigwp.NotOk(res.StatusCode, errors.New(res.Body))
 	} else {
-		token = res.Headers["Authorize"]
+		token = res.Headers["Authorization"]
 	}
 
 	table := r.PathParameters["table"]

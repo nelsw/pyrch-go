@@ -24,20 +24,12 @@ func Unauthorized(err error) (events.APIGatewayProxyResponse, error) {
 	return response(401, "", err.Error()), nil
 }
 
-func NotFound(err error) (events.APIGatewayProxyResponse, error) {
-	return response(404, "", err.Error()), nil
-}
-
 func Ok(body interface{}) (events.APIGatewayProxyResponse, error) {
 	return OkInterface("", body)
 }
 
 func OkVoid(token string) (events.APIGatewayProxyResponse, error) {
 	return response(200, token, ""), nil
-}
-
-func OkString(token, body string) (events.APIGatewayProxyResponse, error) {
-	return response(200, token, body), nil
 }
 
 func OkInterface(token string, body interface{}) (events.APIGatewayProxyResponse, error) {
@@ -66,7 +58,7 @@ func response(s int, t, b string) events.APIGatewayProxyResponse {
 		StatusCode: s,
 		Headers: map[string]string{
 			"Access-Control-Allow-Origin": "*",
-			"Authorize":                   t,
+			"Authorization":               t,
 		},
 		MultiValueHeaders: nil,
 		Body:              b,
