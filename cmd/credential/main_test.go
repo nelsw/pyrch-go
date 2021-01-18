@@ -3,16 +3,15 @@ package main
 import (
 	"encoding/json"
 	"github.com/aws/aws-lambda-go/events"
-	"pyrch-go/pkg/model"
 	data "pyrch-go/test"
 	"testing"
 )
 
 func TestSave200(t *testing.T) {
-	b, _ := json.Marshal(model.Credential{
-		Id:       model.Id{"test"},
-		Password: "test",
-		UserId:   "test",
+	b, _ := json.Marshal(Credential{
+		"test",
+		"Test1234$",
+		"test",
 	})
 	if out, _ := Handle(events.APIGatewayProxyRequest{
 		Headers: map[string]string{"Authorization": data.TKN},
