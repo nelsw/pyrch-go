@@ -8,6 +8,7 @@ import (
 type Credential struct {
 	Id
 	Password string `json:"password"`
+	UserId   string `json:"user_id"`
 }
 
 func (v *Credential) Validate() error {
