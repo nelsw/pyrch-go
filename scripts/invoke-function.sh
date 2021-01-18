@@ -18,12 +18,12 @@ if [ -z "${MEMORY}" ]; then jq --arg var "${MEMORY}" '.Resources.handler.Propert
 if [ -z "${DESC}" ]; then jq --arg var "${DESC}" '.Description=$var' template.json; fi
 
 # Update the sam template with environment variables.
-jq --arg var "$(shell jq '.Variables' test/"${DOMAIN}"/env.json -c)" \
+jq --arg var "$(shell jq '.Variables' cmd/"${DOMAIN}"/env.json -c)" \
 '.Resources.handler.Properties.Environment.Variables=$var' template.json;
 
 # Create a temporary request.json file for local sam invocation.
 jq -n "$(yq r -j build/request.json)" > request.json;
-jq --arg var "$(shell jq '.|tostring' test/"${DOMAIN}"/"${CMD}"/body.json)" '.body=$var' request.json
+jq --arg var "$(shell jq '.|tostring' cmd/"${DOMAIN}"/"${CMD}"/body.json)" '.body=$var' request.json
 
 # Execute `sam local invoke` with flags required template file, and optional file containing event data.
 # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-local-invoke.html

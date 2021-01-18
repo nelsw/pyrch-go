@@ -9,7 +9,7 @@ if [ -z "${ROLE}" ]; then echo "ERROR: Set ROLE to the AWS IAM Role of the λƒ 
 if [ -z "${TIMEOUT}" ]; then TIMEOUT="30"; fi
 if [ -z "${MEMORY}" ]; then MEMORY="512"; fi
 if [ -z "${DESC}" ]; then DESC="null"; fi
-if [ -f test/"${DOMAIN}"/env.json ]; then ENV="$(jq '.' test/"${DOMAIN}"/env.json -c)"; fi
+if [ -f cmd/"${DOMAIN}"/env.json ]; then ENV="$(jq '.' cmd/"${DOMAIN}"/env.json -c)"; fi
 
 # https://docs.aws.amazon.com/cli/latest/reference/lambda/create-function.html
 aws lambda create-function \
