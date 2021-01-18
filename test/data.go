@@ -1,0 +1,3 @@
+package data
+
+const TKN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTEwNjUyNzYsImp0aSI6InRlc3QiLCJpYXQiOjE2MTA5Nzg4NzZ9.Ogoe_xe93QZ2NRgwF24gXkE7526mDBfK0H5-OhcUEZU"

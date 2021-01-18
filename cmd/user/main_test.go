@@ -8,24 +8,45 @@ import (
 	"time"
 )
 
+var pp = map[string]string{
+	"table": "user",
+	"id":    "test",
+}
+
+var body = ""
+
+func init() {
+
+	id := model.Id{"test"}
+	moment := model.Moment{time.Now().Unix()}
+
+	m := model.User{id, moment}
+
+	b, _ := json.Marshal(&m)
+	body = string(b)
+}
+
 func TestFindOne200(t *testing.T) {
-	if out, _ := Handle(events.APIGatewayProxyRequest{
+
+	r := events.APIGatewayProxyRequest{
 		Path:           "find-one",
-		PathParameters: map[string]string{"id": "test"},
-	}); out.StatusCode != 200 {
+		PathParameters: pp,
+	}
+
+	if out, _ := Handle(r); out.StatusCode != 200 {
 		t.Fail()
 	}
 }
 
 func TestSaveOne200(t *testing.T) {
-	b, _ := json.Marshal(&model.User{
-		model.Id{"test"},
-		model.Moment{time.Now().Unix()},
-	})
-	if out, _ := Handle(events.APIGatewayProxyRequest{
-		Path: "save",
-		Body: string(b),
-	}); out.StatusCode != 200 {
+
+	r := events.APIGatewayProxyRequest{
+		Path:           "save",
+		PathParameters: pp,
+		Body:           body,
+	}
+
+	if out, _ := Handle(r); out.StatusCode != 200 {
 		t.Fail()
 	}
 }

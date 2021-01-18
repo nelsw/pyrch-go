@@ -4,15 +4,16 @@ import (
 	"encoding/json"
 	"github.com/aws/aws-lambda-go/events"
 	"pyrch-go/pkg/model"
+	data "pyrch-go/test"
 	"testing"
-	"time"
 )
 
 func TestFindOne200(t *testing.T) {
 	if out, _ := Handle(events.APIGatewayProxyRequest{
-		Path: "find-one",
+		Headers: map[string]string{"Authorization": data.TKN},
+		Path:    "find-one",
 		PathParameters: map[string]string{
-			"table": "user",
+			"table": "profile",
 			"id":    "test",
 		},
 	}); out.StatusCode != 200 {
@@ -22,9 +23,10 @@ func TestFindOne200(t *testing.T) {
 
 func TestFindAll200(t *testing.T) {
 	if out, _ := Handle(events.APIGatewayProxyRequest{
-		Path: "find-all",
+		Headers: map[string]string{"Authorization": data.TKN},
+		Path:    "find-all",
 		PathParameters: map[string]string{
-			"table": "fish",
+			"table": "profile",
 		},
 	}); out.StatusCode != 200 {
 		t.Fail()
@@ -33,14 +35,23 @@ func TestFindAll200(t *testing.T) {
 
 func TestSaveOne200(t *testing.T) {
 
-	b, _ := json.Marshal(&model.User{
-		model.Id{"test"},
-		model.Moment{time.Now().Unix()},
+	m := model.Moment{}
+	_ = m.Validate()
+
+	b, _ := json.Marshal(struct {
+		Id     string `json:"id"`
+		UserId string `json:"user_id"`
+		model.Moment
+	}{
+		"test",
+		"test",
+		m,
 	})
 	if out, _ := Handle(events.APIGatewayProxyRequest{
-		Path: "save",
+		Headers: map[string]string{"Authorization": data.TKN},
+		Path:    "save",
 		PathParameters: map[string]string{
-			"table": "user",
+			"table": "profile",
 		},
 		Body: string(b),
 	}); out.StatusCode != 200 {
