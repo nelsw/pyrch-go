@@ -16,7 +16,6 @@ var (
 	allPaths = regexp.MustCompile(`claims|create|id|verify`)
 	jwtPaths = regexp.MustCompile(`claims|id|verify`)
 	jwtKey   = []byte(os.Getenv("JWT_KEY"))
-	stage    = os.Getenv("STAGE")
 )
 
 func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -32,9 +31,9 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 	if jwtPaths.Match([]byte(r.Path)) {
 
 		// is there a security provided?
-		token, ok := r.Headers["Authorize"]
-		if stage != "test" && !ok {
-			return apigwp.Bad(fmt.Errorf(`security not found`))
+		token, ok := r.Headers["Authorization"]
+		if !ok {
+			return apigwp.Bad(fmt.Errorf(`authorization not found`))
 		}
 
 		// strip the "Bearer" prefix
@@ -43,8 +42,10 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 		// is the security valid?
 		if jwtToken, err := jwt.ParseWithClaims(token, &jwt.StandardClaims{}, func(_ *jwt.Token) (interface{}, error) {
 			return jwtKey, nil
-		}); stage != "test" && (err != nil || !jwtToken.Valid) {
-			return apigwp.Unauthorized(fmt.Errorf(`bad security, invalid segments or expired`))
+		}); err != nil {
+			return apigwp.Unauthorized(err)
+		} else if !jwtToken.Valid {
+			return apigwp.Unauthorized(fmt.Errorf(`bad token, invalid segments`))
 		}
 	}
 
