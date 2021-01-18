@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
@@ -16,12 +15,12 @@ import (
 	"os"
 	"pyrch-go/internal/apigwp"
 	"pyrch-go/internal/faas"
-	"pyrch-go/pkg/model"
 	"strconv"
 	"time"
 )
 
 var db *dynamodb.DynamoDB
+var i interface{}
 
 func init() {
 	if sess, err := session.NewSession(&aws.Config{
@@ -108,9 +107,6 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 	}
 
 	table := r.PathParameters["table"]
-	i := model.Registry[table]
-	_ = json.Unmarshal([]byte(r.Body), &i)
-
 	if r.Path == "save" {
 		if err := save(&table, &i); err != nil {
 			return apigwp.Bad(err)
