@@ -6,6 +6,7 @@ type Taxonomy struct {
 	Phylum     string `json:"phylum"`
 	Class      string `json:"class"`
 	Order      string `json:"order"`
+	Infraorder string `json:"Infraorder"`
 	Family     string `json:"family"`
 	Tribe      string `json:"tribe"`
 	Genus      string `json:"genus"`

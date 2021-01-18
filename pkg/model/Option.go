@@ -1,8 +1,7 @@
 package model
 
 type Option struct {
-	Pk
-	Fk
+	Id
 	Price   int64  `json:"price"`   // 7900 = $79.00, stripe thinks it makes cents
 	Weight  int    `json:"weight"`  // 170 = 1.7, to avoid decimals entirely
 	Label   string `json:"label"`   // oz, lb, kilo, ton, w/e
@@ -11,9 +10,7 @@ type Option struct {
 }
 
 func (e *Option) Validate() error {
-	if err := e.Pk.Validate(); err != nil {
-		return err
-	} else if err := e.Fk.Validate(); err != nil {
+	if err := e.Id.Validate(); err != nil {
 		return err
 	}
 	return nil

@@ -13,7 +13,7 @@ func TestFindOne200(t *testing.T) {
 		Path: "find-one",
 		PathParameters: map[string]string{
 			"table": "user",
-			"pk":    "test",
+			"id":    "test",
 		},
 	}); out.StatusCode != 200 {
 		t.Fail()
@@ -34,7 +34,7 @@ func TestFindAll200(t *testing.T) {
 func TestSaveOne200(t *testing.T) {
 
 	b, _ := json.Marshal(&model.User{
-		model.Pk{"test"},
+		model.Id{"test"},
 		model.Moment{time.Now().Unix()},
 	})
 	if out, _ := Handle(events.APIGatewayProxyRequest{

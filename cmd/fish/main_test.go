@@ -9,7 +9,7 @@ import (
 
 func TestSave200(t *testing.T) {
 	b, _ := json.Marshal(model.Fish{
-		Pk: model.Pk{"test1"},
+		Id: model.Id{"test1"},
 		Animal: model.Animal{
 			Url:    "https://www.tampabaycichlids.com/collections/mbuna/products/cynotilapia-afra-jalo-reef-mbuna-malawi-african-cichlid",
 			Title:  "Cynotilapia afra (Jalo Reef), Mbuna, Malawi African Cichlid",
@@ -22,18 +22,6 @@ func TestSave200(t *testing.T) {
 			"table": "fish",
 		},
 		Body: string(b),
-	}); out.StatusCode != 200 {
-		t.Fail()
-	}
-}
-
-func TestFind200(t *testing.T) {
-	if out, _ := Handle(events.APIGatewayProxyRequest{
-		Path: "find-one",
-		PathParameters: map[string]string{
-			"table": "fish",
-			"pk":    "test1",
-		},
 	}); out.StatusCode != 200 {
 		t.Fail()
 	}

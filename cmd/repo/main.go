@@ -49,9 +49,9 @@ func save(table *string, i *interface{}) error {
 	utcVal := &dynamodb.AttributeValue{S: &utcStr}
 	item["utc"] = utcVal
 
-	if id, ok := item["pk"]; !ok || id.S == nil {
+	if id, ok := item["id"]; !ok || id.S == nil {
 		s, _ := uuid.NewUUID()
-		item["pk"] = &dynamodb.AttributeValue{S: aws.String(s.String())}
+		item["id"] = &dynamodb.AttributeValue{S: aws.String(s.String())}
 	}
 
 	if _, err := db.PutItem(&dynamodb.PutItemInput{
@@ -69,7 +69,7 @@ func save(table *string, i *interface{}) error {
 func findOne(table, id *string, i interface{}) error {
 	if out, err := db.GetItem(&dynamodb.GetItemInput{
 		TableName: table,
-		Key:       map[string]*dynamodb.AttributeValue{"pk": {S: id}},
+		Key:       map[string]*dynamodb.AttributeValue{"id": {S: id}},
 	}); err != nil {
 		return err
 	} else {
@@ -121,7 +121,7 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 	}
 
 	if r.Path == "find-one" {
-		id := r.PathParameters["pk"]
+		id := r.PathParameters["id"]
 		if err := findOne(&table, &id, &i); err != nil {
 			return apigwp.Bad(err)
 		}

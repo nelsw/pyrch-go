@@ -1,12 +1,12 @@
 package model
 
 type Fish struct {
-	Pk
+	Id
 	Animal
 }
 
 func (e *Fish) Validate() error {
-	if err := e.Pk.Validate(); err != nil {
+	if err := e.Id.Validate(); err != nil {
 		return err
 	} else if err = e.Animal.Validate(); err != nil {
 		return err

@@ -24,8 +24,8 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 	}
 
 	if r.Path == "find-one" {
-		if pk, ok := r.PathParameters["pk"]; !ok {
-			return apigwp.Bad(fmt.Errorf("no pk"))
+		if id, ok := r.PathParameters["id"]; !ok {
+			return apigwp.Bad(fmt.Errorf("no id"))
 		} else {
 			b, _ := json.Marshal(&model.User{})
 			return faas.InvokeIt("repo", events.APIGatewayProxyRequest{
@@ -33,7 +33,7 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 				Path:    r.Path,
 				PathParameters: map[string]string{
 					"table": "user",
-					"pk":    pk,
+					"id":    id,
 				},
 				Body: string(b),
 			}), nil

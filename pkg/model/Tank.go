@@ -1,8 +1,7 @@
 package model
 
 type Tank struct {
-	Pk
-	Fk
+	Id
 	Water
 	Animals []string `json:"animals"`
 }

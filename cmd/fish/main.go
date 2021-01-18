@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
@@ -8,6 +9,7 @@ import (
 	"github.com/gocolly/colly"
 	"pyrch-go/internal/apigwp"
 	"pyrch-go/internal/faas"
+	"pyrch-go/pkg/model"
 )
 
 func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -29,13 +31,28 @@ func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, er
 		)
 
 		c.OnHTML("div.small--one-half:nth-child(n)", func(e *colly.HTMLElement) {
-
 			e1 := e.DOM.Get(0)
-
-			fmt.Println("https://tampabaycichlids.com" + e1.FirstChild.NextSibling.Attr[0].Val)
-			fmt.Println("https://" + e1.FirstChild.NextSibling.FirstChild.NextSibling.Attr[0].Val)
-			fmt.Println(e1.FirstChild.NextSibling.FirstChild.NextSibling.Attr[1].Val)
-
+			id := "https://tampabaycichlids.com" + e1.FirstChild.NextSibling.Attr[0].Val
+			fish := model.Fish{model.Id{id}, model.Animal{
+				Url:    id,
+				Title:  e1.FirstChild.NextSibling.FirstChild.NextSibling.Attr[1].Val,
+				Images: []string{"https://" + e1.FirstChild.NextSibling.FirstChild.NextSibling.Attr[0].Val}},
+			}
+			b, _ := json.Marshal(&fish)
+			faas.InvokeIt("repo", events.APIGatewayProxyRequest{
+				Resource:                        "",
+				Path:                            "save",
+				HTTPMethod:                      "",
+				Headers:                         nil,
+				MultiValueHeaders:               nil,
+				QueryStringParameters:           nil,
+				MultiValueQueryStringParameters: nil,
+				PathParameters:                  map[string]string{"table": "fish"},
+				StageVariables:                  nil,
+				RequestContext:                  events.APIGatewayProxyRequestContext{},
+				Body:                            string(b),
+				IsBase64Encoded:                 false,
+			})
 		})
 
 		// Before making a request print "Visiting ..."

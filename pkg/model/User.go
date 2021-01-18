@@ -1,6 +1,6 @@
 package model
 
 type User struct {
-	Pk
+	Id
 	Moment
 }

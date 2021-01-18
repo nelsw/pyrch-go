@@ -16,6 +16,10 @@ func Bad(err error) (events.APIGatewayProxyResponse, error) {
 	return response(400, "", err.Error()), nil
 }
 
+func BadRequest(s string) (events.APIGatewayProxyResponse, error) {
+	return response(400, "", s), nil
+}
+
 func Unauthorized(err error) (events.APIGatewayProxyResponse, error) {
 	return response(401, "", err.Error()), nil
 }
