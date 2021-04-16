@@ -11,12 +11,17 @@ import (
 )
 
 func init() {
-	stripe.Key = os.Getenv("STRIPE_KEY")
+	stripe.Key = os.Getenv("STRIPE_SK_" + os.Getenv("STAGE"))
 }
 
 func Handle(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	apigwp.LogRequest(r)
+
+	s := r.QueryStringParameters["path"]
+	if s == "key" {
+		return apigwp.Ok(os.Getenv("STRIPE_PK_" + os.Getenv("STAGE")))
+	}
 
 	i64, _ := strconv.ParseInt(r.QueryStringParameters["amount"], 10, 64)
 	params := &stripe.PaymentIntentParams{
